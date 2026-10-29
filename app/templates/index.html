@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="基于火山引擎 RDS PostgreSQL、豆包 Embedding 与大模型的可验证 RAG 智能问答系统。">
+  <title>火山引擎 RAG 智能问答</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="返回首页">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span>火山引擎 RAG 智能问答</span>
+    </a>
+    <nav aria-label="页面导航">
+      <a href="#workflow">工作流</a>
+      <a href="#workspace">知识问答</a>
+      <a href="#evidence">检索证据</a>
+      <a class="nav-button" href="/docs" target="_blank" rel="noreferrer">API 文档</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="page-title">
+      <div class="hero-copy">
+        <span class="eyebrow">VOLCENGINECC · POSTGRESQL · DOUBAO</span>
+        <h1 id="page-title">用云基础设施，搭建<span>可验证</span>的智能问答系统</h1>
+        <p>上传企业文档，系统会自动解析、切片、向量化并写入 pg_vector；提问时先检索证据，再由豆包生成有来源的回答。</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#workspace">开始使用</a>
+          <a class="button secondary" href="#workflow">查看工作流</a>
+        </div>
+        <ul class="proof-list" aria-label="部署状态">
+          <li><span class="proof-dot"></span>真实云资源</li>
+          <li><span class="proof-dot"></span>向量检索</li>
+          <li><span class="proof-dot"></span>证据可追溯</li>
+        </ul>
+      </div>
+
+      <div class="architecture-card" aria-label="RAG 运行流程">
+        <div class="architecture-head">
+          <div>
+            <span class="card-kicker">运行架构</span>
+            <h2>从文档到可信回答</h2>
+          </div>
+          <div id="health-badge" class="health checking"><span></span><b>检查中</b></div>
+        </div>
+        <div class="lane">
+          <span class="lane-label">知识入库</span>
+          <div class="node neutral"><b>企业文档</b><small>TXT · MD · PDF · DOCX</small></div>
+          <i class="arrow"></i>
+          <div class="node green"><b>FastAPI</b><small>解析与切片</small></div>
+          <i class="arrow"></i>
+          <div class="node purple"><b>Embedding</b><small>{{ embedding_dimensions }} 维向量</small></div>
+          <i class="arrow"></i>
+          <div class="node orange"><b>PostgreSQL</b><small>pg_vector · HNSW</small></div>
+        </div>
+        <div class="lane">
+          <span class="lane-label">问答检索</span>
+          <div class="node neutral"><b>用户问题</b><small>自然语言输入</small></div>
+          <i class="arrow"></i>
+          <div class="node purple"><b>Top K</b><small>余弦相似检索</small></div>
+          <i class="arrow"></i>
+          <div class="node purple"><b>豆包 LLM</b><small>依据证据回答</small></div>
+          <i class="arrow"></i>
+          <div class="node green"><b>回答 + 来源</b><small>文件 · 切片 · 距离</small></div>
+        </div>
+        <div class="plan-line"><span>先检索相关知识，再生成回答</span></div>
+      </div>
+    </section>
+
+    <section id="workflow" class="workflow" aria-labelledby="workflow-title">
+      <div class="section-heading">
+        <span class="section-kicker">HOW IT WORKS</span>
+        <h2 id="workflow-title">三步完成知识问答</h2>
+        <p>每一步都连接真实服务，并在页面中反馈处理状态。</p>
+      </div>
+      <div class="step-grid">
+        <article><span>01</span><h3>选择知识文件</h3><p>支持 TXT、Markdown、PDF、DOCX，单文件不超过 {{ max_upload_mib }} MiB。</p></article>
+        <article><span>02</span><h3>建立向量索引</h3><p>文档被解析、切片并通过豆包 Embedding 写入 PostgreSQL。</p></article>
+        <article><span>03</span><h3>提问并核对证据</h3><p>答案同时展示命中文件、切片和余弦距离，便于追溯。</p></article>
+      </div>
+    </section>
+
+    <section id="workspace" class="workspace" aria-labelledby="workspace-title">
+      <div class="section-heading compact">
+        <span class="section-kicker">LIVE WORKSPACE</span>
+        <h2 id="workspace-title">知识库操作台</h2>
+        <p>先上传知识文件，再针对知识库提问。</p>
+      </div>
+
+      <div class="workspace-grid">
+        <article class="work-card upload-card">
+          <div class="card-number">1</div>
+          <div class="work-card-head">
+            <div><h3>导入知识</h3><p>文件将被真实解析、向量化和入库。</p></div>
+            <span class="format-chip">≤ {{ max_upload_mib }} MiB</span>
+          </div>
+          <form id="upload-form">
+            <input id="file" class="visually-hidden" type="file" accept=".txt,.md,.pdf,.docx" required>
+            <label id="drop-zone" class="drop-zone" for="file" tabindex="0">
+              <span class="upload-icon" aria-hidden="true">↑</span>
+              <strong>点击选择文件</strong>
+              <span>或将文件拖到这里</span>
+              <small>TXT · MD · PDF · DOCX</small>
+            </label>
+            <div id="file-summary" class="file-summary hidden" aria-live="polite">
+              <span class="file-type">DOC</span>
+              <div><strong id="file-name"></strong><small id="file-size"></small></div>
+              <button id="clear-file" class="icon-button" type="button" aria-label="移除文件">×</button>
+            </div>
+            <button id="upload-button" class="button primary full" type="submit" disabled>
+              <span>上传并建立索引</span><i class="spinner" aria-hidden="true"></i>
+            </button>
+          </form>
+          <div id="upload-result" class="feedback info" role="status" aria-live="polite">请选择一个知识文件。</div>
+        </article>
+
+        <article class="work-card ask-card">
+          <div class="card-number">2</div>
+          <div class="work-card-head">
+            <div><h3>发起问答</h3><p>系统先检索相关切片，再调用豆包生成回答。</p></div>
+            <label class="top-k-control">Top K
+              <select id="top-k" aria-label="检索切片数量">
+                {% for k in [3, 5, 8, 10] %}
+                <option value="{{ k }}" {% if k == default_top_k %}selected{% endif %}>{{ k }}</option>
+                {% endfor %}
+              </select>
+            </label>
+          </div>
+          <form id="ask-form">
+            <label class="field-label" for="question">你的问题</label>
+            <textarea id="question" rows="6" maxlength="500" placeholder="例如：这份文档中最重要的结论是什么？" required></textarea>
+            <div class="question-meta"><span>建议问题中包含文档里的专有名词</span><span id="question-count">0 / 500</span></div>
+            <div class="suggestions" aria-label="示例问题">
+              <button type="button" data-question="请概括这份文档的核心内容。">概括核心内容</button>
+              <button type="button" data-question="文档里最重要的结论是什么？">提取重要结论</button>
+              <button type="button" data-question="请列出文档中的关键事实，并标明来源。">列出关键事实</button>
+            </div>
+            <button id="ask-button" class="button dark full" type="submit">
+              <span>检索并生成回答</span><i class="spinner" aria-hidden="true"></i>
+            </button>
+          </form>
+        </article>
+      </div>
+    </section>
+
+    <section class="result-grid">
+      <article class="result-card answer-card">
+        <div class="result-head"><div><span class="section-kicker">ANSWER</span><h2>回答</h2></div><button id="copy-answer" class="text-button" type="button" disabled>复制回答</button></div>
+        <div id="answer" class="answer empty" aria-live="polite">
+          <span class="empty-icon">?</span>
+          <p>完成知识上传后，在上方输入问题。</p>
+        </div>
+      </article>
+
+      <article id="evidence" class="result-card evidence-card">
+        <div class="result-head"><div><span class="section-kicker">EVIDENCE</span><h2>检索证据</h2></div><span id="source-count" class="count-chip">0 条</span></div>
+        <div id="sources" class="sources empty" aria-live="polite">
+          <span class="empty-icon">⌕</span>
+          <p>回答后，这里会显示命中的文件、切片编号、余弦距离和原文。</p>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+const $ = (selector) => document.querySelector(selector);
+const uploadForm = $('#upload-form');
+const askForm = $('#ask-form');
+const fileInput = $('#file');
+const dropZone = $('#drop-zone');
+const fileSummary = $('#file-summary');
+const fileName = $('#file-name');
+const fileSize = $('#file-size');
+const clearFileButton = $('#clear-file');
+const uploadButton = $('#upload-button');
+const uploadResult = $('#upload-result');
+const question = $('#question');
+const questionCount = $('#question-count');
+const topK = $('#top-k');
+const askButton = $('#ask-button');
+const answerBox = $('#answer');
+const sourcesBox = $('#sources');
+const sourceCount = $('#source-count');
+const copyAnswer = $('#copy-answer');
+const healthBadge = $('#health-badge');
+const toast = $('#toast');
+const allowedExtensions = ['txt', 'md', 'pdf', 'docx'];
+const maxBytes = {{ max_upload_bytes | tojson }};
+
+function showToast(message, tone = 'success') {
+  toast.textContent = message;
+  toast.className = `toast show ${tone}`;
+  window.clearTimeout(showToast.timer);
+  showToast.timer = window.setTimeout(() => { toast.className = 'toast'; }, 2600);
+}
+
+function setLoading(button, loading) {
+  button.disabled = loading;
+  button.classList.toggle('loading', loading);
+  button.setAttribute('aria-busy', String(loading));
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KiB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MiB`;
+}
+
+function validateFile(file) {
+  if (!file) return '请选择一个文件。';
+  const extension = file.name.split('.').pop().toLowerCase();
+  if (!allowedExtensions.includes(extension)) return '仅支持 TXT、MD、PDF 和 DOCX 文件。';
+  if (!file.size) return '文件不能为空。';
+  if (file.size > maxBytes) return `文件超过 ${formatBytes(maxBytes)} 限制。`;
+  return '';
+}
+
+function renderSelectedFile(file) {
+  const error = validateFile(file);
+  if (error) {
+    fileInput.value = '';
+    fileSummary.classList.add('hidden');
+    uploadButton.disabled = true;
+    uploadResult.className = 'feedback error';
+    uploadResult.textContent = error;
+    return;
+  }
+  fileName.textContent = file.name;
+  fileSize.textContent = `${formatBytes(file.size)} · 等待上传`;
+  fileSummary.classList.remove('hidden');
+  uploadButton.disabled = false;
+  uploadResult.className = 'feedback info';
+  uploadResult.textContent = '文件已就绪，点击下方按钮建立索引。';
+}
+
+async function requestJson(url, options) {
+  const response = await fetch(url, options);
+  let data;
+  try { data = await response.json(); }
+  catch { throw new Error(`服务返回了无法解析的响应（HTTP ${response.status}）`); }
+  if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : `请求失败（HTTP ${response.status}）`);
+  return data;
+}
+
+fileInput.addEventListener('change', () => renderSelectedFile(fileInput.files[0]));
+clearFileButton.addEventListener('click', () => {
+  fileInput.value = '';
+  fileSummary.classList.add('hidden');
+  uploadButton.disabled = true;
+  uploadResult.className = 'feedback info';
+  uploadResult.textContent = '请选择一个知识文件。';
+});
+
+dropZone.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); fileInput.click(); }
+});
+['dragenter', 'dragover'].forEach(name => dropZone.addEventListener(name, event => {
+  event.preventDefault(); dropZone.classList.add('dragging');
+}));
+['dragleave', 'drop'].forEach(name => dropZone.addEventListener(name, event => {
+  event.preventDefault(); dropZone.classList.remove('dragging');
+}));
+dropZone.addEventListener('drop', event => {
+  const file = event.dataTransfer.files[0];
+  if (!file) return;
+  const transfer = new DataTransfer();
+  transfer.items.add(file);
+  fileInput.files = transfer.files;
+  renderSelectedFile(file);
+});
+
+uploadForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const file = fileInput.files[0];
+  const error = validateFile(file);
+  if (error) { renderSelectedFile(file); return; }
+  setLoading(uploadButton, true);
+  uploadResult.className = 'feedback working';
+  uploadResult.textContent = '正在解析文档、生成向量并写入数据库，请稍候…';
+  const body = new FormData();
+  body.append('file', file);
+  try {
+    const data = await requestJson('/api/documents', { method: 'POST', body });
+    uploadResult.className = 'feedback success';
+    uploadResult.textContent = `索引完成：${data.source}，共 ${data.chunks} 个知识切片。`;
+    fileSize.textContent = `${formatBytes(file.size)} · 已建立索引`;
+    showToast('知识文件已成功建立索引');
+    question.focus();
+  } catch (error) {
+    uploadResult.className = 'feedback error';
+    uploadResult.textContent = `导入失败：${error.message}`;
+    showToast('知识导入失败', 'error');
+  } finally { setLoading(uploadButton, false); }
+});
+
+question.addEventListener('input', () => { questionCount.textContent = `${question.value.length} / 500`; });
+document.querySelectorAll('[data-question]').forEach(button => button.addEventListener('click', () => {
+  question.value = button.dataset.question;
+  question.dispatchEvent(new Event('input'));
+  question.focus();
+}));
+
+askForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const cleanQuestion = question.value.trim();
+  if (!cleanQuestion) { question.focus(); showToast('请先输入问题', 'error'); return; }
+  setLoading(askButton, true);
+  copyAnswer.disabled = true;
+  answerBox.className = 'answer loading-state';
+  answerBox.innerHTML = '<span class="pulse"></span><p>正在检索知识并调用豆包模型…</p>';
+  sourcesBox.className = 'sources loading-state';
+  sourcesBox.innerHTML = '<span class="pulse"></span><p>等待向量检索结果…</p>';
+  sourceCount.textContent = '检索中';
+  const body = new FormData();
+  body.append('question', cleanQuestion);
+  body.append('top_k', topK.value);
+  try {
+    const data = await requestJson('/api/ask', { method: 'POST', body });
+    answerBox.className = 'answer';
+    answerBox.textContent = data.answer;
+    copyAnswer.disabled = !data.answer;
+    renderSources(data.sources || []);
+    showToast('回答已生成');
+    answerBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch (error) {
+    answerBox.className = 'answer error-state';
+    answerBox.textContent = `问答失败：${error.message}`;
+    sourcesBox.className = 'sources empty';
+    sourcesBox.innerHTML = '<span class="empty-icon">!</span><p>请求失败，暂无检索证据。</p>';
+    sourceCount.textContent = '0 条';
+    showToast('问答请求失败', 'error');
+  } finally { setLoading(askButton, false); }
+});
+
+function renderSources(sources) {
+  sourceCount.textContent = `${sources.length} 条`;
+  if (!sources.length) {
+    sourcesBox.className = 'sources empty';
+    sourcesBox.innerHTML = '<span class="empty-icon">⌕</span><p>没有命中知识切片，请先上传相关文档或换一个问题。</p>';
+    return;
+  }
+  sourcesBox.className = 'sources';
+  sourcesBox.innerHTML = sources.map((item, index) => `
+    <article class="source-item">
+      <div class="source-index">${index + 1}</div>
+      <div class="source-content">
+        <div class="source-title"><strong>${escapeHtml(item.source)}</strong><span>切片 ${Number(item.chunk_index)}</span><span>距离 ${Number(item.distance).toFixed(4)}</span></div>
+        <p>${escapeHtml(item.content)}</p>
+      </div>
+    </article>`).join('');
+}
+
+copyAnswer.addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(answerBox.textContent); showToast('回答已复制'); }
+  catch { showToast('复制失败，请手动选择文本', 'error'); }
+});
+
+async function checkHealth() {
+  try {
+    const data = await requestJson('/healthz');
+    healthBadge.className = data.ok ? 'health ready' : 'health error';
+    healthBadge.querySelector('b').textContent = data.ok ? '服务就绪' : '服务异常';
+  } catch {
+    healthBadge.className = 'health error';
+    healthBadge.querySelector('b').textContent = '连接失败';
+  }
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+}
+
+checkHealth();
+</script>
+</body>
+</html>
