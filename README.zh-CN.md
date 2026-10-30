@@ -165,19 +165,30 @@ key_pair_name  = null
 
 创建并审查执行计划，确认来源网段、资源规格、Endpoint 新建/复用边界，以及所有替换和删除符合预期后再部署。
 
-资源栈成功只表示云资源创建完成。通过 ECS 控制台终端检查：
+资源栈成功只表示云资源创建完成。登录火山引擎 ECS 控制台，找到资源栈输出 `ecs_instance_id` 对应的实例，打开控制台终端。下面的状态和凭据命令都在该 ECS 上执行。
+
+1. **检查应用安装状态。**
 
 ```bash
 sudo cat /opt/rag-qa-deploy/STATUS
+```
+
+输出为 `ready` 后再进行下一步。如果尚未显示 `ready`，查看安装服务和日志：
+
+```bash
 sudo systemctl status rag-qa-install.service --no-pager
 sudo journalctl -u rag-qa-install.service -n 80 --no-pager
 ```
 
-等待 `STATUS` 为 `ready`，再读取 Web 登录信息并访问 `web_url`：
+2. **读取 Web 登录账号和密码。** 以下命令只显示 `web_username`、`web_password` 两个字段：
 
 ```bash
-sudo python3 -c 'import json; s=json.load(open("/opt/rag-qa-deploy/.runtime/secrets.json")); print(json.dumps({k:s[k] for k in ("web_username","web_password")}))'
+sudo python3 -c 'import json; s=json.load(open("/opt/rag-qa-deploy/.runtime/secrets.json")); print("用户名:", s["web_username"]); print("密码:", s["web_password"])'
 ```
+
+3. **打开页面并登录。** 在 InfraManager 资源栈输出中找到 `web_url`，在浏览器中打开，将上一步显示的用户名和密码填入登录弹窗。这是应用自动生成的 Web 账号，与 ECS 登录密码、数据库密码不同。
+
+本地 Terraform 部署时，在本地模板目录执行 `terraform output -raw web_url` 获取地址；前两步仍在 ECS 终端执行。
 
 ### 4.2 本地部署
 
