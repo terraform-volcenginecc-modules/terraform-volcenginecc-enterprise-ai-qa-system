@@ -104,6 +104,8 @@ EIP、系统盘、主网卡和 RDS 节点是父资源的内嵌属性。ECS 内�
 
 ECS 登录方式互斥：
 
+未使用的凭据可以传 `null`、空字符串 `""`，或在平台输入框中留空。模板将空字符串和纯空白归一为 `null` 后，再进行互斥校验并传给 ECS。密码模式仍需填写有效密码，密钥对模式仍需填写已有密钥对名称；同时填写两种凭据会被拒绝。字符串 `"null"` 不等于 `null`。
+
 ```hcl
 # 密钥对模式
 ecs_login_mode = "key_pair"
@@ -131,6 +133,18 @@ key_pair_name  = null
 
 输出不返回 RDS 密码、Ark Key、应用数据库密码或 Web 密码。
 
+### 3.4 获取 Ark API Key
+
+`ark_api_key` 是应用调用豆包生成模型和 Embedding 模型时使用的鉴权密钥。它与云账号的 Access Key / Secret Key、`ep-...` 模型接入点 ID 不同。模板会创建或复用接入点，但不会自动创建 API Key。
+
+1. **进入方舟控制台，选择地域和项目。** 打开 [火山方舟控制台](https://console.volcengine.com/ark)，选择北京地域 `cn-beijing`，并切换到与模板 `project_name` 一致的项目空间；当前参数文件使用 `default`。API Key 和模型接入点需要属于同一个项目。
+
+2. **创建 API Key。** 进入 [API Key 管理](https://ark.volcengine.com/region:cn-beijing/apiKey)，单击“创建 API Key”，填写名称并确认创建。这个 Key 的调用权限需要覆盖生成模型和 Embedding 模型两个接入点。默认 `create_model_endpoints = true` 时，接入点将在部署中创建，Key 不应只授权给此前已有的接入点；复用接入点时，可以将权限限定为要使用的两个 Endpoint ID。
+
+3. **复制密钥并填写部署参数。** 在 API Key 列表中查看并复制创建的完整密钥，在 InfraManager 创建资源栈时，将它填写到敏感参数 `ark_api_key`。本地部署可以在 `terraform.tfvars` 中替换 `ark_api_key` 示例值，或按第4.2节通过 `TF_VAR_ark_api_key` 输入；使用环境变量时，先注释或删除文件中的同名赋值。
+
+控制台操作和项目权限规则见[官方 API Key 获取指南](https://docs.volcengine.com/docs/ark/api-key?lang=zh)。
+
 ## 4. 使用说明
 
 ### 4.1 InfraManager 部署
@@ -142,7 +156,7 @@ key_pair_name  = null
 - `image_id`
 - `web_source_cidr`
 - `postgres_admin_password`
-- `ark_api_key`
+- `ark_api_key`，获取步骤见[第3.4节](#34-获取-ark-api-key)
 - 默认密钥模式下的已有 `key_pair_name`，或密码模式下的 `ecs_password`
 
 发布包包含当前 `terraform.tfvars`。上传前必须检查其中的地域、镜像、规格、密钥对、Endpoint 前缀和来源 CIDR。当前 Web 与 SSH 来源为 `0.0.0.0/0`，只适合临时测试。

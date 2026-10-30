@@ -104,6 +104,8 @@ See [variables.tf](variables.tf) for complete definitions and validation rules.
 
 ECS login modes are mutually exclusive:
 
+An unused credential may be `null`, an empty string (`""`), or a blank platform input. The template normalizes empty and whitespace-only strings to `null` before checking mutual exclusivity and passing credentials to ECS. Password mode still requires a valid password, and key-pair mode still requires an existing key-pair name. Supplying both credentials is rejected. The string `"null"` is not a null value.
+
 ```hcl
 # Key-pair mode
 ecs_login_mode = "key_pair"
@@ -131,6 +133,18 @@ key_pair_name  = null
 
 No output returns the RDS password, Ark Key, application database password, or Web password.
 
+### 3.4 Get an Ark API Key
+
+`ark_api_key` authenticates the application's calls to the Doubao generation and Embedding models. It is different from a cloud account's Access Key / Secret Key and an `ep-...` endpoint ID. The template creates or reuses endpoints, but does not create an API Key.
+
+1. **Open the Ark console and select the region and project.** Open the [Ark console](https://console.volcengine.com/ark), select Beijing (`cn-beijing`), and switch to the project matching the template's `project_name`; the current parameter file uses `default`. The API Key and model endpoints must belong to the same project.
+
+2. **Create an API Key.** Open [API Key Management](https://ark.volcengine.com/region:cn-beijing/apiKey), click **Create API Key**, enter a name, and confirm creation. The Key must authorize calls to both the generation and Embedding endpoints. With the default `create_model_endpoints = true`, those endpoints are created during deployment, so the Key must not be restricted to previously existing endpoints only. In reuse mode, access can be restricted to the two endpoint IDs being used.
+
+3. **Copy the Key and supply the deployment parameter.** View the new Key in the API Key list and copy its full value. When creating an InfraManager stack, enter it in the sensitive parameter `ark_api_key`. For local deployment, replace the `ark_api_key` example in `terraform.tfvars`, or set `TF_VAR_ark_api_key` as described in Section 4.2; comment out or remove the corresponding file assignment before using the environment variable.
+
+See the [official API Key guide](https://docs.volcengine.com/docs/ark/api-key?lang=zh) for console instructions and project permission rules.
+
 ## 4. Usage
 
 ### 4.1 InfraManager Deployment
@@ -142,7 +156,7 @@ Upload the complete release package in the [InfraManager console](https://consol
 - `image_id`
 - `web_source_cidr`
 - `postgres_admin_password`
-- `ark_api_key`
+- `ark_api_key`; see [Section 3.4](#34-get-an-ark-api-key) for setup instructions
 - an existing `key_pair_name` in default key-pair mode, or `ecs_password` in password mode
 
 The release package includes the current `terraform.tfvars`. Review its region, image, specifications, key-pair name, endpoint prefix, and source CIDRs before upload. Its current Web and SSH sources are `0.0.0.0/0`, suitable only for temporary testing.

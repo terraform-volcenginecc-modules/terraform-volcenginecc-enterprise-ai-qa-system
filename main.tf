@@ -75,16 +75,16 @@ resource "terraform_data" "configuration" {
       condition = (
         (
           var.ecs_login_mode == "key_pair" &&
-          var.key_pair_name != null &&
-          nonsensitive(var.ecs_password == null)
+          local.ecs_key_pair_name != null &&
+          nonsensitive(local.ecs_login_password == null)
         ) ||
         (
           var.ecs_login_mode == "password" &&
-          var.key_pair_name == null &&
-          nonsensitive(var.ecs_password != null)
+          local.ecs_key_pair_name == null &&
+          nonsensitive(local.ecs_login_password != null)
         )
       )
-      error_message = "ECS 登录凭据必须互斥：key_pair 模式需要 key_pair_name 且 ecs_password=null；password 模式需要 ecs_password 且 key_pair_name=null。"
+      error_message = "ECS 登录凭据必须互斥：key_pair 模式需要非空 key_pair_name 且 ecs_password 留空或为 null；password 模式需要有效 ecs_password 且 key_pair_name 留空或为 null。"
     }
   }
 }
@@ -109,8 +109,8 @@ module "compute" {
   image_id              = var.image_id
   instance_type         = var.instance_type
   login_mode            = var.ecs_login_mode
-  key_pair_name         = var.key_pair_name
-  password              = var.ecs_password
+  key_pair_name         = local.ecs_key_pair_name
+  password              = local.ecs_login_password
   public_bandwidth_mbps = var.public_bandwidth_mbps
   system_disk_size_gb   = var.system_disk_size_gb
   tags_list             = local.tags_list

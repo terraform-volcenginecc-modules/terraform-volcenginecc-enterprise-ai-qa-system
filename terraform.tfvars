@@ -9,7 +9,7 @@ ssh_source_cidr = "0.0.0.0/0" # 临时公网 SSH，验证后收敛为实际来�
 ecs_login_mode  = "key_pair"
 key_pair_name   = "wordpress" # 部署前填写目标地域中已有的 ECS 密钥对名称
 ecs_password    = null
-# 密码模式改为 ecs_login_mode="password"、key_pair_name=null，并填写 ecs_password。
+# 密码模式改为 ecs_login_mode="password"、key_pair_name=null 或 ""，并填写 ecs_password。
 # 若用 TF_VAR_ecs_password 输入，先注释或删除上面的 ecs_password=null；InfraManager 可使用敏感参数输入。
 image_id              = "image-ydf193g9cqb6uoeqqqj8"
 instance_type         = "ecs.g3i.large"

@@ -80,26 +80,21 @@ variable "ecs_login_mode" {
 
 variable "key_pair_name" {
   type        = string
-  description = "key_pair 模式绑定的已有 ECS 密钥对名称；password 模式须为 null"
+  description = "key_pair 模式填写已有 ECS 密钥对名称；password 模式留空或设为 null"
   default     = null
   nullable    = true
-
-  validation {
-    condition     = var.key_pair_name == null ? true : length(trimspace(var.key_pair_name)) > 0
-    error_message = "key_pair_name 必须为 null 或非空的已有 ECS 密钥对名称。"
-  }
 }
 
 # 示例默认值；密码模式部署前通过变量文件、环境变量或平台敏感参数提供实际密码。
 variable "ecs_password" {
   type        = string
-  description = "password 模式的 ECS 初始管理员密码；该值会保存到 Terraform State"
+  description = "password 模式填写 ECS 初始管理员密码；key_pair 模式留空或设为 null；该值会保存到 Terraform State"
   default     = "ReplaceWithStrongPassword123"
   nullable    = true
   sensitive   = true
 
   validation {
-    condition = var.ecs_password == null ? true : (
+    condition = var.ecs_password == null ? true : (trimspace(var.ecs_password) == "" ? true : (
       length(var.ecs_password) >= 8 &&
       length(var.ecs_password) <= 30 &&
       (
@@ -111,7 +106,7 @@ variable "ecs_password" {
       can(regex("^[A-Za-z0-9`~!@#$%^&*()_+={}\\[\\]:;'<>,.?/|\\-]+$", var.ecs_password)) &&
       !startswith(var.ecs_password, "/") &&
       !startswith(var.ecs_password, "$6$")
-    )
+    ))
     error_message = "ecs_password 须为 8–30 位、至少包含三类字符、仅使用 ECS 支持字符，且不能以 / 或 $6$ 开头。"
   }
 }

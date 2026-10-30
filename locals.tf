@@ -1,4 +1,8 @@
 locals {
+  # 平台字符串输入框可能提交空字符串；统一视为未提供凭据，实际值保持不变。
+  ecs_key_pair_name  = var.key_pair_name == null ? null : (trimspace(var.key_pair_name) == "" ? null : var.key_pair_name)
+  ecs_login_password = var.ecs_password == null ? null : (trimspace(var.ecs_password) == "" ? null : var.ecs_password)
+
   tags_list = [for key, value in var.common_tags : {
     key   = key
     value = value
