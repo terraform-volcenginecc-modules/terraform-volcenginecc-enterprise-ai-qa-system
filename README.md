@@ -91,7 +91,7 @@ See [variables.tf](variables.tf) for complete definitions and validation rules.
 | `postgres_node_spec` / `postgres_storage_gb` | `rds.postgres.1c2g` / `100` | RDS specification and storage |
 | `postgres_database_name` | `ragdb` | RAG database |
 | `postgres_admin_username` | `ragbootstrap` | RDS bootstrap account |
-| `postgres_admin_password` | Required, sensitive | RDS bootstrap password |
+| `postgres_admin_password` | Required, sensitive, no default | RDS bootstrap password; `null` is not allowed |
 | `ark_api_key` | Required, sensitive | Manually created Ark API Key |
 | `create_model_endpoints` | `true` | Create or reuse model endpoints |
 | `llm_endpoint_id` / `embedding_endpoint_id` | Empty | Required in reuse mode |
@@ -161,7 +161,7 @@ Upload the complete release package in the [InfraManager console](https://consol
 
 The release package includes the current `terraform.tfvars`. Review its region, image, specifications, key-pair name, endpoint prefix, and source CIDRs before upload. Its current Web and SSH sources are `0.0.0.0/0`, suitable only for temporary testing.
 
-The fixed passwords in `variables.tf` and the password and API Key values in `terraform.tfvars` are examples; provide actual values before deployment. `ecs_password`, `postgres_admin_password`, and `ark_api_key` are marked `sensitive = true`. Use the platform's sensitive parameter inputs when deploying through InfraManager.
+`postgres_admin_password` has no default, rejects `null`, and must be supplied explicitly. Its assignment in `terraform.tfvars` is commented out; uncomment it and enter the actual password when using file input. The ECS default password and Ark API Key example still need to be replaced before use. `ecs_password`, `postgres_admin_password`, and `ark_api_key` are marked `sensitive = true`. Use the platform's sensitive parameter inputs when deploying through InfraManager.
 
 Review the execution plan before deployment. Stack success means cloud resources are created, not that application installation is complete. Check ECS:
 
@@ -183,7 +183,7 @@ Prepare Terraform `>= 1.5.7`. Provider versions are pinned to `volcenginecc 0.0.
 
 Choose either input method for passwords and API Keys:
 
-- File input: replace the corresponding example values in `terraform.tfvars`.
+- File input: uncomment the database password assignment in `terraform.tfvars` and enter the actual password, then replace the API Key example.
 - Environment variables: comment out or remove the corresponding assignments in `terraform.tfvars`, then set `TF_VAR_*`. Automatically loaded variable files take precedence over environment variables, including assignments set to `null`.
 
 The commands below use environment variables for the database password and Ark API Key. `sensitive` hides values in normal Terraform output; it does not encrypt variable files or State, or change input precedence. Do not commit files containing actual credentials.

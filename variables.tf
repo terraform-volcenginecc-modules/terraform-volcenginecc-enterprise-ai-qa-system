@@ -180,11 +180,11 @@ variable "postgres_admin_username" {
   }
 }
 
-# 示例默认值；部署前通过变量文件、环境变量或平台敏感参数提供实际密码。
+# 必填，无默认值；通过变量文件、环境变量或平台敏感参数提供实际密码。
 variable "postgres_admin_password" {
   type        = string
-  description = "RDS PostgreSQL 初始化管理员账号密码；敏感值会保存到 Terraform State"
-  default     = "ReplaceWithStrongPassword123"
+  description = "RDS PostgreSQL 初始化管理员账号密码（必填，无默认值）；敏感值会保存到 Terraform State"
+  nullable    = false
   sensitive   = true
 
   validation {

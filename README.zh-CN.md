@@ -91,7 +91,7 @@ EIP、系统盘、主网卡和 RDS 节点是父资源的内嵌属性。ECS 内�
 | `postgres_node_spec` / `postgres_storage_gb` | `rds.postgres.1c2g` / `100` | RDS 规格与存储 |
 | `postgres_database_name` | `ragdb` | RAG 数据库名称 |
 | `postgres_admin_username` | `ragbootstrap` | RDS 初始化账号 |
-| `postgres_admin_password` | 必填、敏感 | RDS 初始化密码 |
+| `postgres_admin_password` | 必填、敏感，无默认值 | RDS 初始化密码，不允许 `null` |
 | `ark_api_key` | 必填、敏感 | 手工创建的方舟 API Key |
 | `create_model_endpoints` | `true` | 创建或复用模型 Endpoint |
 | `llm_endpoint_id` / `embedding_endpoint_id` | 空 | 复用模式必填 |
@@ -161,7 +161,7 @@ key_pair_name  = null
 
 发布包包含当前 `terraform.tfvars`。上传前必须检查其中的地域、镜像、规格、密钥对、Endpoint 前缀和来源 CIDR。当前 Web 与 SSH 来源为 `0.0.0.0/0`，只适合临时测试。
 
-`variables.tf` 中的固定密码和 `terraform.tfvars` 中的密码、API Key 均为示例值，部署前需要提供实际值。`ecs_password`、`postgres_admin_password` 和 `ark_api_key` 已标记 `sensitive = true`；使用 InfraManager 时通过平台敏感参数输入。
+数据库密码 `postgres_admin_password` 无默认值且不允许 `null`，必须显式提供。`terraform.tfvars` 中的数据库密码赋值默认注释，选择文件输入时需取消注释并填写实际密码。ECS 的默认密码和 Ark API Key 示例值仍需在部署前替换。`ecs_password`、`postgres_admin_password` 和 `ark_api_key` 已标记 `sensitive = true`；使用 InfraManager 时通过平台敏感参数输入。
 
 创建并审查执行计划，确认来源网段、资源规格、Endpoint 新建/复用边界，以及所有替换和删除符合预期后再部署。
 
@@ -185,7 +185,7 @@ sudo python3 -c 'import json; s=json.load(open("/opt/rag-qa-deploy/.runtime/secr
 
 密码和 API Key 可以任选一种输入方式：
 
-- 文件输入：在 `terraform.tfvars` 中替换对应示例值。
+- 文件输入：取消 `terraform.tfvars` 中数据库密码赋值的注释并填写实际密码，同时替换 API Key 示例值。
 - 环境变量输入：先注释或删除 `terraform.tfvars` 中对应赋值，再设置 `TF_VAR_*`。自动加载的变量文件优先于环境变量，赋值为 `null` 也会覆盖环境变量。
 
 下面使用环境变量输入数据库密码和 Ark API Key。`sensitive` 会隐藏 Terraform 常规输出中的敏感值，但不会加密变量文件或 State，也不会改变输入优先级。不要提交包含真实凭据的文件。

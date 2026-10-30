@@ -24,8 +24,9 @@ postgres_database_name = "ragdb"
 # 以下变量已在 variables.tf 中标记 sensitive；示例值在部署前替换。
 # 文件输入：填写实际值；环境变量输入：先注释或删除对应赋值，再设置 TF_VAR_*。
 # InfraManager 可使用敏感参数输入；不要将真实凭据提交到代码库。
-postgres_admin_password = "ReplaceWithStrongPassword123"
-ark_api_key             = "ark-xxxxxxxxxx"
+# 数据库密码必填且无默认值；文件输入时取消下行注释并填写实际密码。
+# postgres_admin_password = "<填写实际数据库密码>"
+ark_api_key = "ark-xxxxxxxxxx"
 # 默认管理员账号为 ragbootstrap；需要变更时可取消注释：
 postgres_admin_username = "ragbootstrap"
 
