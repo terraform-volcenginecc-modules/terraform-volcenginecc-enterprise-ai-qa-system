@@ -10,6 +10,8 @@ ssh_source_cidr       = "0.0.0.0/0" # 临时公网 SSH，验证后收敛为实�
 ecs_login_mode        = "key_pair"
 key_pair_name         = "wordpress" # 部署前填写目标地域中已有的 ECS 密钥对名称
 ecs_password          = null
+# 密码模式改为 ecs_login_mode="password"、key_pair_name=null，并通过
+# TF_VAR_ecs_password 或 InfraManager 敏感参数输入密码，不要写入 tfvars。
 image_id              = "image-ydf193g9cqb6uoeqqqj8"
 instance_type         = "ecs.g3i.large"
 public_bandwidth_mbps = 5
@@ -19,6 +21,12 @@ postgres_version       = "PostgreSQL_14"
 postgres_node_spec     = "rds.postgres.2c4g"
 postgres_storage_gb    = 100
 postgres_database_name = "ragdb"
+
+# 以下两个敏感参数在 InfraManager 中手工填写；不要写入 tfvars 或提交到代码库。
+postgres_admin_password = "ReplaceWithStrongPassword123"
+ark_api_key             = "ark-xxxxxxxxxx"
+# 默认管理员账号为 ragbootstrap；需要变更时可取消注释：
+postgres_admin_username = "ragbootstrap"
 
 # 模型需在所选地域开通；版本和库存应在部署前确认。
 create_model_endpoints     = true

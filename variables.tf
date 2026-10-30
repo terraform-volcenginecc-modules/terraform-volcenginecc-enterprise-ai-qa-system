@@ -93,7 +93,7 @@ variable "key_pair_name" {
 variable "ecs_password" {
   type        = string
   description = "password 模式的 ECS 初始管理员密码；该值会保存到 Terraform State"
-  default     = null
+  default     = "ReplaceWithStrongPassword123"
   nullable    = true
   sensitive   = true
 
@@ -187,6 +187,7 @@ variable "postgres_admin_username" {
 variable "postgres_admin_password" {
   type        = string
   description = "RDS PostgreSQL 初始化管理员账号密码；敏感值会保存到 Terraform State"
+  default     = "ReplaceWithStrongPassword123"
   sensitive   = true
 
   validation {

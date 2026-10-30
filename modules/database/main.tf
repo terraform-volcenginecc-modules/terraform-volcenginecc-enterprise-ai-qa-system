@@ -54,22 +54,23 @@ resource "time_sleep" "before_allow_list_destroy" {
   depends_on = [volcenginecc_rdspostgresql_allow_list.app_subnet]
 }
 
+resource "volcenginecc_rdspostgresql_db_account" "bootstrap" {
+  instance_id      = volcenginecc_rdspostgresql_instance.main.instance_id
+  account_name     = var.admin_username
+  account_password = var.admin_password
+  account_type     = "Super"
+}
+
 resource "volcenginecc_rdspostgresql_database" "rag" {
   instance_id        = volcenginecc_rdspostgresql_instance.main.instance_id
   db_name            = var.database_name
   character_set_name = "utf8"
   collate            = "C.UTF-8"
   c_type             = "C.UTF-8"
-}
 
-resource "volcenginecc_rdspostgresql_db_account" "bootstrap" {
-  instance_id        = volcenginecc_rdspostgresql_instance.main.instance_id
-  account_name       = var.admin_username
-  account_password   = var.admin_password
-  account_type       = "Super"
-  account_privileges = "Login,Inherit,CreateDB,CreateRole"
-
-  depends_on = [volcenginecc_rdspostgresql_database.rag]
+  # Create the account first so destroy removes the database and its owned
+  # objects before attempting to drop the account.
+  depends_on = [volcenginecc_rdspostgresql_db_account.bootstrap]
 }
 
 locals {

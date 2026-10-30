@@ -1,5 +1,6 @@
 .terraform/
 terraform.tfstate*
+.terraform.tfstate.lock.info
 terraform.tfvars
 !/terraform.tfvars
 *.tfplan
