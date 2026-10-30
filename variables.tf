@@ -90,6 +90,7 @@ variable "key_pair_name" {
   }
 }
 
+# 示例默认值；密码模式部署前通过变量文件、环境变量或平台敏感参数提供实际密码。
 variable "ecs_password" {
   type        = string
   description = "password 模式的 ECS 初始管理员密码；该值会保存到 Terraform State"
@@ -184,6 +185,7 @@ variable "postgres_admin_username" {
   }
 }
 
+# 示例默认值；部署前通过变量文件、环境变量或平台敏感参数提供实际密码。
 variable "postgres_admin_password" {
   type        = string
   description = "RDS PostgreSQL 初始化管理员账号密码；敏感值会保存到 Terraform State"

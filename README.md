@@ -147,6 +147,8 @@ Upload the complete release package in the [InfraManager console](https://consol
 
 The release package includes the current `terraform.tfvars`. Review its region, image, specifications, key-pair name, endpoint prefix, and source CIDRs before upload. Its current Web and SSH sources are `0.0.0.0/0`, suitable only for temporary testing.
 
+The fixed passwords in `variables.tf` and the password and API Key values in `terraform.tfvars` are examples; provide actual values before deployment. `ecs_password`, `postgres_admin_password`, and `ark_api_key` are marked `sensitive = true`. Use the platform's sensitive parameter inputs when deploying through InfraManager.
+
 Review the execution plan before deployment. Stack success means cloud resources are created, not that application installation is complete. Check ECS:
 
 ```bash
@@ -165,11 +167,18 @@ sudo python3 -c 'import json; s=json.load(open("/opt/rag-qa-deploy/.runtime/secr
 
 Prepare Terraform `>= 1.5.7`. Provider versions are pinned to `volcenginecc 0.0.72` and `time 0.14.2`.
 
+Choose either input method for passwords and API Keys:
+
+- File input: replace the corresponding example values in `terraform.tfvars`.
+- Environment variables: comment out or remove the corresponding assignments in `terraform.tfvars`, then set `TF_VAR_*`. Automatically loaded variable files take precedence over environment variables, including assignments set to `null`.
+
+The commands below use environment variables for the database password and Ark API Key. `sensitive` hides values in normal Terraform output; it does not encrypt variable files or State, or change input precedence. Do not commit files containing actual credentials.
+
 ```bash
 export VOLCENGINE_ACCESS_KEY='<access-key>'
 export VOLCENGINE_SECRET_KEY='<secret-key>'
 
-# Review and edit terraform.tfvars.
+# Review terraform.tfvars and comment out or remove its postgres_admin_password and ark_api_key assignments.
 export TF_VAR_postgres_admin_password='<new-rds-password>'
 export TF_VAR_ark_api_key='<ark-api-key>'
 

@@ -1,17 +1,16 @@
-# 复制为 terraform.tfvars，替换镜像与管理网段；密钥由 scripts/prepare.sh 填入。
-region                = "cn-beijing"
-zone_id               = "cn-beijing-a"
-project_name          = "default"
-name_prefix           = "enterprise-ai-qa"
-vpc_cidr              = "10.40.0.0/16"
-subnet_cidr           = "10.40.1.0/24"
-web_source_cidr       = "0.0.0.0/0" # 文档示例网段，必须改为实际访问出口
-ssh_source_cidr       = "0.0.0.0/0" # 临时公网 SSH，验证后收敛为实际来源或设为 null
-ecs_login_mode        = "key_pair"
-key_pair_name         = "wordpress" # 部署前填写目标地域中已有的 ECS 密钥对名称
-ecs_password          = null
-# 密码模式改为 ecs_login_mode="password"、key_pair_name=null，并通过
-# TF_VAR_ecs_password 或 InfraManager 敏感参数输入密码，不要写入 tfvars。
+region          = "cn-beijing"
+zone_id         = "cn-beijing-a"
+project_name    = "default"
+name_prefix     = "enterprise-ai-qa"
+vpc_cidr        = "10.40.0.0/16"
+subnet_cidr     = "10.40.1.0/24"
+web_source_cidr = "0.0.0.0/0" # 文档示例网段，必须改为实际访问出口
+ssh_source_cidr = "0.0.0.0/0" # 临时公网 SSH，验证后收敛为实际来源或设为 null
+ecs_login_mode  = "key_pair"
+key_pair_name   = "wordpress" # 部署前填写目标地域中已有的 ECS 密钥对名称
+ecs_password    = null
+# 密码模式改为 ecs_login_mode="password"、key_pair_name=null，并填写 ecs_password。
+# 若用 TF_VAR_ecs_password 输入，先注释或删除上面的 ecs_password=null；InfraManager 可使用敏感参数输入。
 image_id              = "image-ydf193g9cqb6uoeqqqj8"
 instance_type         = "ecs.g3i.large"
 public_bandwidth_mbps = 5
@@ -22,7 +21,9 @@ postgres_node_spec     = "rds.postgres.2c4g"
 postgres_storage_gb    = 100
 postgres_database_name = "ragdb"
 
-# 以下两个敏感参数在 InfraManager 中手工填写；不要写入 tfvars 或提交到代码库。
+# 以下变量已在 variables.tf 中标记 sensitive；示例值在部署前替换。
+# 文件输入：填写实际值；环境变量输入：先注释或删除对应赋值，再设置 TF_VAR_*。
+# InfraManager 可使用敏感参数输入；不要将真实凭据提交到代码库。
 postgres_admin_password = "ReplaceWithStrongPassword123"
 ark_api_key             = "ark-xxxxxxxxxx"
 # 默认管理员账号为 ragbootstrap；需要变更时可取消注释：

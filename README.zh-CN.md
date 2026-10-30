@@ -147,6 +147,8 @@ key_pair_name  = null
 
 发布包包含当前 `terraform.tfvars`。上传前必须检查其中的地域、镜像、规格、密钥对、Endpoint 前缀和来源 CIDR。当前 Web 与 SSH 来源为 `0.0.0.0/0`，只适合临时测试。
 
+`variables.tf` 中的固定密码和 `terraform.tfvars` 中的密码、API Key 均为示例值，部署前需要提供实际值。`ecs_password`、`postgres_admin_password` 和 `ark_api_key` 已标记 `sensitive = true`；使用 InfraManager 时通过平台敏感参数输入。
+
 创建并审查执行计划，确认来源网段、资源规格、Endpoint 新建/复用边界，以及所有替换和删除符合预期后再部署。
 
 资源栈成功只表示云资源创建完成。通过 ECS 控制台终端检查：
@@ -167,11 +169,18 @@ sudo python3 -c 'import json; s=json.load(open("/opt/rag-qa-deploy/.runtime/secr
 
 准备 Terraform `>= 1.5.7`。Provider 精确固定为 `volcenginecc 0.0.72` 和 `time 0.14.2`。
 
+密码和 API Key 可以任选一种输入方式：
+
+- 文件输入：在 `terraform.tfvars` 中替换对应示例值。
+- 环境变量输入：先注释或删除 `terraform.tfvars` 中对应赋值，再设置 `TF_VAR_*`。自动加载的变量文件优先于环境变量，赋值为 `null` 也会覆盖环境变量。
+
+下面使用环境变量输入数据库密码和 Ark API Key。`sensitive` 会隐藏 Terraform 常规输出中的敏感值，但不会加密变量文件或 State，也不会改变输入优先级。不要提交包含真实凭据的文件。
+
 ```bash
 export VOLCENGINE_ACCESS_KEY='<access-key>'
 export VOLCENGINE_SECRET_KEY='<secret-key>'
 
-# 审查并修改 terraform.tfvars。
+# 审查 terraform.tfvars，并注释或删除 postgres_admin_password、ark_api_key 的赋值。
 export TF_VAR_postgres_admin_password='<new-rds-password>'
 export TF_VAR_ark_api_key='<ark-api-key>'
 

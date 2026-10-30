@@ -14,11 +14,11 @@ output "allow_list_id" {
 }
 
 output "private_domain" {
-  value       = try(local.private_addresses[0].domain, "")
+  value       = local.private_addresses[0].domain
   description = "RDS PostgreSQL 私网域名"
 }
 
 output "private_port" {
-  value       = try(local.private_addresses[0].port, "5432")
+  value       = local.private_addresses[0].port
   description = "RDS PostgreSQL 私网端口"
 }
