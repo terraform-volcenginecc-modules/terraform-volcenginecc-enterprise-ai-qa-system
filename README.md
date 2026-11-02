@@ -1,6 +1,6 @@
 # Enterprise Knowledge QA on Volcengine
 
-Use Terraform and the `volcengine/volcenginecc` provider to create a VPC, ECS host, RDS PostgreSQL 14, and Doubao model endpoints on Volcengine. The template automatically installs an enterprise knowledge QA application built with Nginx, FastAPI/Uvicorn, pg_vector, and HNSW. Users can upload TXT, Markdown, PDF, and DOCX documents and receive RAG answers with source evidence. The solution is intended for demonstrations, functional validation, and small noncritical workloads.
+The template creates a VPC, an ECS instance, RDS PostgreSQL, and Doubao model endpoints, and automatically installs an enterprise knowledge QA application built with Nginx, FastAPI/Uvicorn, pg_vector, and HNSW. Users can upload TXT, Markdown, PDF, and DOCX documents and receive RAG answers with source evidence. The solution is intended for demonstrations, functional validation, and small noncritical workloads.
 
 ## 1. Business Background
 

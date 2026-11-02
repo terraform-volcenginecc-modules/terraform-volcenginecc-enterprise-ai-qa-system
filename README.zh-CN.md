@@ -1,6 +1,6 @@
 # 快速搭建企业智能问答系统
 
-使用 Terraform 和 `volcengine/volcenginecc` Provider，在火山引擎创建 VPC、ECS、RDS PostgreSQL 14 和豆包模型 Endpoint，并自动安装基于 Nginx、FastAPI/Uvicorn、pg_vector 与 HNSW 的企业知识问答应用。支持上传 TXT、Markdown、PDF 和 DOCX，通过 RAG 获得带来源证据的回答，适合演示、功能验证和小规模非关键业务。
+创建 VPC、ECS、RDS PostgreSQL 和豆包模型 Endpoint，并自动安装基于 Nginx、FastAPI/Uvicorn、pg_vector 与 HNSW 的企业知识问答应用。支持上传 TXT、Markdown、PDF 和 DOCX，通过 RAG 获得带来源证据的回答，适合演示、功能验证和小规模非关键业务。
 
 ## 1. 业务背景
 
