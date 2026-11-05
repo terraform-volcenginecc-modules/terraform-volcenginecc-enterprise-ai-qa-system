@@ -1,0 +1,16 @@
+.terraform/
+terraform.tfstate*
+.terraform.tfstate.lock.info
+terraform.tfvars
+!/terraform.tfvars
+*.tfplan
+tfplan*
+.runtime/
+.qa-key*
+.env*
+.venv/
+__pycache__/
+.pytest_cache/
+.idea/
+log/
+*.zip

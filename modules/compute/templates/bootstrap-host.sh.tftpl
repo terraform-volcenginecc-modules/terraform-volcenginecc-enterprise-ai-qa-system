@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
+BASE_DIR=/opt/rag-qa-deploy
+install -d -m 0755 "$BASE_DIR"
+exec 8>/run/rag-qa-bootstrap.lock
+flock 8
+if [[ "$(cat "$BASE_DIR/bootstrap.id" 2>/dev/null)" == "${bootstrap_id}" ]]; then
+  systemctl start --no-block rag-qa-install.service
+  exit 0
+fi
+# Stop an old installation before replacing its public source/configuration.
+systemctl stop rag-qa-install.service 2>/dev/null || true
+printf 'downloading-source\n' > "$BASE_DIR/STATUS"
+trap 'printf "failed: bootstrap\n" > "$BASE_DIR/STATUS"' ERR
+# The systemd service retries transient TOS or package failures.
+cat > "$BASE_DIR/start-install.sh" <<'INSTALL'
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
+python3 - <<'PYTHON'
+import base64, gzip, hashlib, json, os, urllib.request
+from pathlib import Path
+root = Path("/opt/rag-qa-deploy")
+source_url = base64.b64decode("${source_url_base64}", validate=True).decode("utf-8")
+with urllib.request.urlopen(source_url, timeout=60) as response:
+    encoded = response.read(10 * 1024 * 1024 + 1)
+if len(encoded) > 10 * 1024 * 1024:
+    raise RuntimeError("Application source exceeds download limit")
+data = gzip.decompress(base64.b64decode(encoded, validate=True))
+if hashlib.sha256(data).hexdigest() != "${payload_sha256}":
+    raise RuntimeError("Application source checksum mismatch")
+snapshot = root / "sources" / "${payload_sha256}"
+for name, encoded in json.loads(data).items():
+    relative = Path(name)
+    if relative.is_absolute() or ".." in relative.parts:
+        raise RuntimeError("Invalid payload path")
+    target = snapshot / relative
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(base64.b64decode(encoded, validate=True))
+link = root / "source-next"
+link.unlink(missing_ok=True)
+link.symlink_to(snapshot)
+os.replace(link, root / "source")
+(root / "config.json").write_bytes(base64.b64decode("${config_base64}"))
+(root / "source.sha256").write_text("${payload_sha256}\n")
+PYTHON
+exec /bin/bash /opt/rag-qa-deploy/source/scripts/auto-install.sh
+INSTALL
+cat > /etc/systemd/system/rag-qa-install.service <<'UNIT'
+[Unit]
+Description=Install enterprise QA and initialize private runtime
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /opt/rag-qa-deploy/start-install.sh
+TimeoutStartSec=3600
+Restart=on-failure
+RestartSec=60
+UMask=0077
+[Install]
+WantedBy=multi-user.target
+UNIT
+systemctl daemon-reload
+systemctl enable rag-qa-install.service
+printf '%s\n' '${bootstrap_id}' > "$BASE_DIR/bootstrap.id"
+systemctl start --no-block rag-qa-install.service
